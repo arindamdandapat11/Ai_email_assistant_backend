@@ -16,7 +16,7 @@ A Spring Boot-based backend service that powers an AI-driven email assistant. Th
 ![REST API](https://img.shields.io/badge/REST_API-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 
 ### Database & Tools
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
@@ -40,6 +40,7 @@ Before you begin, ensure you have the following installed:
 
 - **Java JDK 17+** (or compatible version)
 - **Maven 3.6+**
+- **PostgreSQL 12+**
 - **Git**
 - An **AI API Key** (e.g., OpenAI, Google Gemini, or similar)
 
@@ -61,6 +62,13 @@ Create a `.env` file in the project root or configure `application.properties`:
 AI_API_KEY=your_api_key_here
 AI_MODEL=gpt-4  # or your preferred model
 
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=email_assistant_db
+DB_USERNAME=your_db_username
+DB_PASSWORD=your_db_password
+
 # Server Configuration
 server.port=8080
 
@@ -68,7 +76,17 @@ server.port=8080
 cors.allowed.origins=http://localhost:3000
 ```
 
-### 3. Install Dependencies
+### 3. Setup PostgreSQL Database
+
+Create the database:
+
+```sql
+CREATE DATABASE email_assistant_db;
+CREATE USER your_db_username WITH PASSWORD 'your_db_password';
+GRANT ALL PRIVILEGES ON DATABASE email_assistant_db TO your_db_username;
+```
+
+### 4. Install Dependencies
 
 Using Maven Wrapper (recommended):
 
@@ -171,7 +189,7 @@ Ai_email_assistant_backend/
 graph TB
     A[Frontend Client] -->|HTTP/REST| B[Spring Boot Backend]
     B -->|API Call| C[AI Service OpenAI/Gemini]
-    B -->|Query/Store| D[Database MySQL]
+    B -->|Query/Store| D[PostgreSQL Database]
     B -->|Cache| E[Redis Optional]
     
     subgraph Backend Services
@@ -184,7 +202,7 @@ graph TB
     style A fill:#61dafb,stroke:#333,stroke-width:2px
     style B fill:#6db33f,stroke:#333,stroke-width:2px
     style C fill:#412991,stroke:#333,stroke-width:2px
-    style D fill:#4479a1,stroke:#333,stroke-width:2px
+    style D fill:#316192,stroke:#333,stroke-width:2px
 ```
 
 </div>
@@ -201,6 +219,18 @@ spring.application.name=ai-email-assistant-backend
 
 # Server Port
 server.port=8080
+
+# PostgreSQL Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/email_assistant_db
+spring.datasource.username=your_db_username
+spring.datasource.password=your_db_password
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA/Hibernate Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
 
 # AI Service Configuration
 ai.service.endpoint=https://api.openai.com/v1
@@ -283,6 +313,11 @@ public class CorsConfig {
 |----------|-------------|----------|---------|
 | `AI_API_KEY` | API key for AI service | Yes | - |
 | `AI_MODEL` | AI model to use | No | gpt-4 |
+| `DB_HOST` | PostgreSQL host | Yes | localhost |
+| `DB_PORT` | PostgreSQL port | Yes | 5432 |
+| `DB_NAME` | Database name | Yes | email_assistant_db |
+| `DB_USERNAME` | Database username | Yes | - |
+| `DB_PASSWORD` | Database password | Yes | - |
 | `SERVER_PORT` | Server port | No | 8080 |
 | `CORS_ORIGINS` | Allowed CORS origins | No | * |
 
@@ -310,6 +345,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 **Issue**: Application fails to start
 - **Solution**: Ensure Java 17+ is installed and JAVA_HOME is set correctly
 
+**Issue**: Database connection failed
+- **Solution**: Verify PostgreSQL is running and credentials in `.env` are correct. Check if the database exists.
+
 **Issue**: AI API calls failing
 - **Solution**: Verify your API key is correct and has sufficient credits/quota
 
@@ -318,6 +356,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Issue**: Port already in use
 - **Solution**: Change the port in `application.properties` or stop the conflicting service
+
+**Issue**: Hibernate schema generation errors
+- **Solution**: Ensure PostgreSQL user has proper permissions. Try setting `spring.jpa.hibernate.ddl-auto=create` for first run.
 
 ## 📚 Additional Resources
 
